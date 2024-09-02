@@ -163,7 +163,6 @@ export default function TypingComponent() {
       (testFinished.current && endTestTime && startTestTime) ||
       (countdown === 0 && endTestTime && startTestTime)
     ) {
-      //console.log("true");
       const durationInSeconds =
         (endTestTime.getTime() - startTestTime.getTime()) / 1000;
       const durationInMinutes = durationInSeconds / 60;
@@ -254,7 +253,7 @@ export default function TypingComponent() {
     if (
       typing_area &&
       currentWord &&
-      currentWord?.getBoundingClientRect().top > 470
+      currentWord?.getBoundingClientRect().top > 490
     ) {
       const margin = parseInt(typing_area?.style.marginTop || "0px");
       typing_area.style.marginTop = margin - 40 + "px";

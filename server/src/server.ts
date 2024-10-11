@@ -10,7 +10,7 @@ const PORT = process.env.PORT ?? 5000;
 
 config();
 const corsOptions = {
-  origin: `${process.env.FRONTEND_URL}`,
+  origin: `*`,
   credentials: true,
 };
 const app = express();

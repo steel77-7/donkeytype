@@ -10,7 +10,7 @@ const PORT = process.env.PORT ?? 5000;
 
 config();
 const corsOptions = {
-  origin: `*`,
+  origin: `${process.env.FRONTEND_URL}`,
   credentials: true,
 };
 const app = express();
@@ -200,7 +200,7 @@ const hitAPi = async () => {
     console.log(error);
   }
 };
-cron.schedule("* * * * *", async () => {
+cron.schedule("*/5 * * * *", async () => {
   await hitAPi();
 });
 

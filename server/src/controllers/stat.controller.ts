@@ -246,72 +246,78 @@ const getResultStats = asyncHandler(async (req, res) => {
 
 const singlePlayerLeaderBoard = asyncHandler(async (req, res) => {
   const mode = req.params.mode;
-  const limit = req.params.limit || 10; 
+  const limit = req.params.limit || 10;
+
   let results;
   let historyIds: Array<BsonObjectId> = [];
 
-  if (mode === "Words 10") {
-    const tenWordsBest = await TenWordsBest.find({})
-      .select("history -_id")
-      .limit(limit as number);
-    historyIds = tenWordsBest.map(
-      (doc) => new BsonObjectId(doc.history.toString())
-    );
-  }
+  switch (mode) {
+    case "Words 10":
+      const tenWordsBest = await TenWordsBest.find({})
+        .select("history -_id")
+        .limit(limit as number);
+      historyIds = tenWordsBest.map(
+        (doc) => new BsonObjectId(doc.history.toString())
+      );
+      break;
 
-  if (mode === "Words 25") {
-    const twentyFiveWords = await TwentyFiveWordsBest.find({})
-      .select("history -_id")
-      .limit(limit as number);
-    historyIds = twentyFiveWords.map(
-      (doc) => new BsonObjectId(doc.history.toString())
-    );
-  }
-  if (mode === "Words 50") {
-    const fiftyWords = await FiftyWordsBest.find({})
-      .select("history -_id")
-      .limit(limit as number);
-    historyIds = fiftyWords.map(
-      (doc) => new BsonObjectId(doc.history.toString())
-    );
-  }
-  if (mode === "Words 100") {
-    const hunderedWords = await HunderedWordsBest.find({})
-      .select("history -_id")
-      .limit(limit as number);
-    historyIds = hunderedWords.map(
-      (doc) => new BsonObjectId(doc.history.toString())
-    );
-  }
-  if (mode === "Time 10") {
-    const tenSec = await TenSecBest.find({})
-      .select("history -_id")
-      .limit(limit as number);
-    historyIds = tenSec.map((doc) => new BsonObjectId(doc.history.toString()));
-  }
-  if (mode === "Time 30") {
-    const twentyFiveSec = await ThritySecondsBest.find({})
-      .select("history -_id")
-      .limit(limit as number);
-    historyIds = twentyFiveSec.map(
-      (doc) => new BsonObjectId(doc.history.toString())
-    );
-  }
-  if (mode === "Time 60") {
-    const fiftySec = await SixtySecondsBest.find({})
-      .select("history -_id")
-      .limit(limit as number);
-    historyIds = fiftySec.map(
-      (doc) => new BsonObjectId(doc.history.toString())
-    );
-  }
-  if (mode === "Time 120") {
-    const hunderedSec = await HunderedTwentySecBest.find({})
-      .select("history -_id")
-      .limit(limit as number);
-    historyIds = hunderedSec.map(
-      (doc) => new BsonObjectId(doc.history.toString())
-    );
+    case "Words 25":
+      const twentyFiveWords = await TwentyFiveWordsBest.find({})
+        .select("history -_id")
+        .limit(limit as number);
+      historyIds = twentyFiveWords.map(
+        (doc) => new BsonObjectId(doc.history.toString())
+      );
+      break;
+    case "Words 50":
+      const fiftyWords = await FiftyWordsBest.find({})
+        .select("history -_id")
+        .limit(limit as number);
+      historyIds = fiftyWords.map(
+        (doc) => new BsonObjectId(doc.history.toString())
+      );
+
+    case "Words 100":
+      const hunderedWords = await HunderedWordsBest.find({})
+        .select("history -_id")
+        .limit(limit as number);
+      historyIds = hunderedWords.map(
+        (doc) => new BsonObjectId(doc.history.toString())
+      );
+      break;
+    case "Time 10":
+      const tenSec = await TenSecBest.find({})
+        .select("history -_id")
+        .limit(limit as number);
+      historyIds = tenSec.map(
+        (doc) => new BsonObjectId(doc.history.toString())
+      );
+
+      break;
+    case "Time 30":
+      const twentyFiveSec = await ThritySecondsBest.find({})
+        .select("history -_id")
+        .limit(limit as number);
+      historyIds = twentyFiveSec.map(
+        (doc) => new BsonObjectId(doc.history.toString())
+      );
+      break;
+    case "Time 60":
+      const fiftySec = await SixtySecondsBest.find({})
+        .select("history -_id")
+        .limit(limit as number);
+      historyIds = fiftySec.map(
+        (doc) => new BsonObjectId(doc.history.toString())
+      );
+      break;
+    case "Time 120":
+      const hunderedSec = await HunderedTwentySecBest.find({})
+        .select("history -_id")
+        .limit(limit as number);
+      historyIds = hunderedSec.map(
+        (doc) => new BsonObjectId(doc.history.toString())
+      );
+      break;
   }
 
   const queryFilter = {
@@ -326,8 +332,9 @@ const singlePlayerLeaderBoard = asyncHandler(async (req, res) => {
       .select("profilePic wpm chars consistency accuracy")
       .populate("user", "username profilePic")
       .limit(limit as number)
-      .sort({wpm:-1});
+      .sort({ wpm: -1 });
     results = { data: history, count };
+
     return res.status(200).json(new ApiResponse(200, results ?? {}));
   } else {
     return res
@@ -337,21 +344,73 @@ const singlePlayerLeaderBoard = asyncHandler(async (req, res) => {
 });
 
 //to be made ^-^
-const multiplayerPlayerLeaderBoard = asyncHandler(async (req, res) => {
-  console.log(req.params.mode);
+const mutliplayerLeaderBoard = asyncHandler(async (req, res) => {
+  const mode = req.params.mode;
+  const limit = req.params.limit || 10;
 
-  const result = await History.find({ mode: req.params.mode, opponent: null })
-    .sort({ wpm: -1 })
-    .limit(Number(req.params.limit))
-    .populate(
-      "user",
-      "username email testCompleted profilePic name testStarted"
-    );
-  if (!result) {
-    return res.status(401).json(new ApiResponse(404, "Not found"));
-  }
-  console.log(result);
-  return res.status(200).json(new ApiResponse(200, result));
+  const result = await History.aggregate([
+    {
+      $match: {
+        mode: mode,
+        multiplayer: true,
+        roomId: { $ne: null },
+        opponent: { $ne: null },
+        winner: { $ne: null },
+      },
+    },
+    {
+      $group: {
+        _id: { winner: "$winner", roomId: "$roomId" },
+        doc: { $first: "$$ROOT" },
+      },
+    },
+    {
+      $group: {
+        _id: "$_id.winner",
+        wins: { $sum: 1 },
+        wpm: { $avg: "$doc.wpm" },
+        accuracy: { $avg: "$doc.accuracy" },
+        consistency: { $avg: "$doc.consistency" },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $unwind: { path: "$user", preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        wins: 1,
+        wpm: 1,
+        accuracy: 1,
+        consistency: 1,
+        "user.username": 1,
+        "user.email": 1,
+        "user.profilePic": 1,
+        "user._id": 1,
+      },
+    },
+    {
+      $sort: { wins: -1 },
+    },
+    { $limit: Number(limit) },
+  ]);
+  if (result.length == 0)
+    return res.status(404).json(new ApiResponse(404, "Users not found"));
+
+  return res.status(200).json(new ApiResponse(200, { data: result }));
 });
 
-export { getHistory, getAverageStats, getResultStats, singlePlayerLeaderBoard };
+export {
+  getHistory,
+  getAverageStats,
+  getResultStats,
+  singlePlayerLeaderBoard,
+  mutliplayerLeaderBoard,
+};

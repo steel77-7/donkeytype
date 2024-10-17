@@ -13,7 +13,7 @@ const Leaderboard = () => {
   const [mode, setMode] = useState("Words 10");
   const [loader, setLoader] = useState(true);
   const [limit, setLimit] = useState(10);
-  const [disabled,setDisabled] = useState(false);
+  const [disabled, setDisabled] = useState(false);
 
   const modeButtonConfig = useMemo(
     () => [
@@ -134,30 +134,75 @@ const Leaderboard = () => {
     []
   );
 
+  const mutliplayer_columns = useMemo(
+    () => [
+      {
+        Header: "Avatar",
+        accessor: "profilePic",
+        Cell: ({ value }: { value: string }) => (
+          <img
+            src={value}
+            alt="Profile"
+            className="border rounded-full flex justify-center items-center h-[50px]"
+          />
+        ),
+      },
+      {
+        Header: "Username",
+        accessor: "username",
+      },
+      {
+        Header: "Wins",
+        accessor: "wins",
+      },
+      {
+        Header: "WPM",
+        accessor: "wpm",
+      },
+
+      {
+        Header: "Accuracy",
+        accessor: "accuracy",
+      },
+      {
+        Header: "Consistency",
+        accessor: "consistency",
+      },
+    ],
+    []
+  );
+
   const fetchLeaderBoard = async () => {
+    console.log("adoifughaghaijdgiush");
     try {
       const { data, status } = await apiCall({
-        url: `/stats/single-player-leaderboard/${mode}/${limit}`,
+        url:
+          firstMode !== "Multiplayer"
+            ? `/stats/single-player-leaderboard/${mode}/${limit}`
+            : `/stats/multi-player-leaderboard/${mode}/${limit}`,
         method: "GET",
       });
       if (status == 200) {
         const formattedHistory = data.data.map((entry: any) => ({
-          wpm: entry.wpm,
+          wpm: Math.round(entry.wpm),
           chars: entry.chars,
-          consistency: entry.consistency,
-          accuracy: entry.accuracy,
+          consistency: Math.round(entry.consistency),
+          wins: entry.wins,
+          accuracy: Math.round(entry.accuracy),
           username: entry.user.username,
           profilePic: entry.user.profilePic,
           view: `http://localhost:5173/result/?id=${entry._id}`,
         }));
+        console.log(data);
         setData(formattedHistory);
-        if(data.count<=limit){
-            setDisabled(true);
+        if (data.count <= limit) {
+          setDisabled(true);
         }
       } else {
         setData([]);
       }
     } catch (error) {
+      console.log(error);
       toast.error("Can't fetch leaderboard");
     } finally {
       setLoader(false);
@@ -168,17 +213,17 @@ const Leaderboard = () => {
     setFirstMode(mode);
     setMode("Words 10");
     setDisabled(false);
-    setLimit(10)
+    setLimit(10);
   };
   function toggleWordTimeMode({ mode }: { mode: string }) {
     setMode(mode);
     setDisabled(false);
-    setLimit(10)
+    setLimit(10);
   }
 
   useEffect(() => {
     fetchLeaderBoard();
-  }, [mode,limit]);
+  }, [mode, limit, firstMode]);
   return (
     <>
       <MainNav />
@@ -195,7 +240,68 @@ const Leaderboard = () => {
           ))}
         </div>
         {firstMode === "Multiplayer" ? (
-          <div className="flex justify-center items-center">Coming Soon...</div>
+          <>
+            <div className="flex w-full mt-2">
+              {modeButtonConfig.map((button, index) => (
+                <button
+                  key={index}
+                  className={`w-full py-3 hover:bg-white hover:text-zinc-900 ${button.className}`}
+                  onClick={button.funtion}
+                >
+                  {button.text}
+                </button>
+              ))}
+            </div>
+            <div className="flex w-full mt-2">
+              {timeButtonConfig.map((button, index) => (
+                <button
+                  key={index}
+                  className={`w-full py-3 hover:bg-white hover:text-zinc-900 ${button.className}`}
+                  onClick={button.funtion}
+                >
+                  {button.text}
+                </button>
+              ))}
+            </div>
+            <div className="overflow-y-auto mt-10">
+              {data && data.length > 0 && !loader ? (
+                <>
+                  <TableHoc columns={mutliplayer_columns} data={data} />
+                  <div className="w-full flex justify-center items-center">
+                    <button
+                      className="text-2xl mx-6 text-center bg-zinc-800 mt-4 pb-1 cursor-pointer items-center w-full hover:bg-zinc-200 hover:text-zinc-800 transition ease-in-out duration-150"
+                      disabled={disabled}
+                      onClick={() => {
+                        setLimit(limit + 10);
+                      }}
+                    >
+                      Show More
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  {loader ? (
+                    <div className="flex justify-center items-center h-[45vh]">
+                      <Bars
+                        height="80"
+                        width="80"
+                        color="yellow"
+                        ariaLabel="bars-loading"
+                        wrapperStyle={{}}
+                        wrapperClass=""
+                        visible={true}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex justify-center items-center h-[45vh]">
+                      <p className="text-3xl">No Leaderboard Stats Found</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
         ) : (
           <>
             <div className="flex w-full mt-2">
